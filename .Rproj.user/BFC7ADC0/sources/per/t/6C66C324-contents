@@ -1,0 +1,104 @@
+setwd("D:/Study/Semester 8/Distributed Computing/Labs/Labs/Assignment/Titanic Disaster")
+test<-read.csv("test.csv",sep = ",")
+train<-read.csv("train.csv",sep = ",")
+Data<- rbind(train[,0:11],test)
+summary(Data)
+str(Data)
+head(Data)
+sum(is.na(Data))
+
+
+# Get the names of columns that have null values
+names(Data)[colSums(is.na(Data)) > 0]
+med<-median(Data$Age,na.rm = TRUE)
+mean<-mean(Data$Fare,na.rm = TRUE)
+#replace null values with med
+Data$Age<-ifelse(is.na(Data$Age), med, Data$Age)
+Data$Fare<-ifelse(is.na(Data$Fare), mean, Data$Fare)
+sum(is.na(Data))
+
+
+# one-hot encoding
+
+# Convert categorical columns to a factor
+Data$Name <- factor(Data$Name)
+Data$Sex <- factor(Data$Sex)
+Data$take.off <- factor(Data$take.off)
+Data$Cabin <- factor(Data$Cabin)
+Data$Ticket <- factor(Data$Ticket)
+#Convert the factor to a numeric representation
+Data$Name <- as.numeric(Data$Name)
+Data$Sex <- as.numeric(Data$Sex)
+Data$take.off <- as.numeric(Data$take.off)
+Data$Cabin <- as.numeric(Data$Cabin)
+Data$Ticket <- as.numeric(Data$Ticket)
+
+#Normalization
+Data<-as.data.frame(scale(Data))
+
+#Split the Data
+ntrain<- Data[0:891,]
+ntest<-Data[892:1309,]
+
+#add Survived Column to train data
+ntrain$Survived<- train$Survived
+
+#Extract Features
+#install.packages("corrplot")
+#library(corrplot)
+
+# Subset the data to include only numeric columns
+ntrain <- ntrain[, sapply(ntrain, is.numeric)]
+
+# Compute the correlation matrix
+cor_matrix <- cor(ntrain)
+
+# Visualize the correlation matrix
+corrplot(cor_matrix, method = "shade")
+
+# Drop the columns with correlation less than 0.2
+
+cor(ntrain$Survived,ntrain[,c("PassengerId","Pclass","Name","Sex","Age","SibSp","Parch","Ticket","Fare","Cabin","take.off")])
+train_Data<-subset(ntrain,select = c(Pclass,Sex,Ticket,Fare,Cabin,take.off,Survived))
+train_Data
+#install.packages("e1071")
+library("e1071")
+
+#model <- naiveBayes(Survived ~.,train_Data,laplace = 0.01)
+#model
+
+# Fit logistic regression model
+#model <- glm(Survived ~. ,data = train_Data, family = binomial())
+
+#results <- predict (model,ntest,type = "response")
+#results[results<0.5]<-0
+#results[results>=0.5]<-1
+#results
+#install.packages("rpart")
+#library(rpart)
+#model <- rpart(Survived ~ ., data = train_Data,cp = 0.01, minsplit = 10, minbucket = 5)
+#pruned_model <- prune(model, cp = 0.05)
+#results <- predict(pruned_model,ntest)
+
+library(randomForest)
+model <- randomForest(Survived ~ ., data = train_Data,ntree = 500, mtry = 2, nodesize = 10)
+results <- predict(model, newdata = ntest)
+results
+
+class(results)
+class(test$PassengerId)
+min(results)
+max(results)
+results[results<0.5]<-0
+results[results>=0.5]<-1
+results
+nresults$PassengerId<-as.integer(test$PassengerId)
+class(results)
+
+nresults$Survived<-results
+nresults
+
+write.csv(nresults, file = "results.csv", row.names = FALSE)
+c<- read.csv("results.csv")
+nresults
+

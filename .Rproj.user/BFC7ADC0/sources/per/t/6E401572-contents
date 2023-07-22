@@ -1,0 +1,40 @@
+setwd("D:/Study/Semester 8/Distributed Computing/Labs/Labs/Assignment/Titanic Disaster")
+# Load the Titanic dataset
+titanic <- read.csv("train.csv")
+
+# Data exploration
+summary(titanic) # Summarize the data
+table(titanic$Survived) # Count the number of survivors and non-survivors
+table(titanic$Pclass, titanic$Survived) # Count the number of survivors and non-survivors by passenger class
+table(titanic$Sex, titanic$Survived) # Count the number of survivors and non-survivors by gender
+
+# Data visualization
+library(ggplot2)
+ggplot(titanic, aes(x = Pclass, fill = factor(Survived))) + 
+  geom_bar() + 
+  labs(x = "Passenger Class", y = "Count", title = "Survivors by Passenger Class") +
+  scale_fill_discrete(name = "Survived", labels = c("No", "Yes"))
+ggplot(titanic, aes(x = Sex, fill = factor(Survived))) + 
+  geom_bar() + 
+  labs(x = "Gender", y = "Count", title = "Survivors by Gender") +
+  scale_fill_discrete(name = "Survived", labels = c("No", "Yes"))
+
+# Data preprocessing
+titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age, na.rm = TRUE) # Replace missing age values with mean age
+titanic <- titanic[complete.cases(titanic),] # Remove rows with missing values
+titanic$Sex <- factor(titanic$Sex, levels = c("female", "male")) # Encode gender as a factor variable
+#titanic$Embarked[is.na(titanic$Embarked)] <- "S" # Replace missing embarked values with "S" (the most common value)
+
+# Survival prediction using logistic regression
+set.seed(123)
+train_index <- sample(nrow(titanic), 0.8 * nrow(titanic))
+train_data <- titanic[train_index, ]
+valid_data <- titanic[-train_index, ]
+library("randomForest")
+logit_model <- randomForest(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare,
+                   data = train_data,family = binomia)
+valid_pred <- predict(logit_model, newdata = valid_data, type = "response")
+valid_pred_class <- ifelse(valid_pred >= 0.5, 1, 0)
+accuracy <- mean(valid_pred_class == valid_data$Survived)
+cat("Validation accuracy:", round(accuracy * 100, 2), "%\n")
+
