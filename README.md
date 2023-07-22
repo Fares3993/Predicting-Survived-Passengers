@@ -1,4 +1,4 @@
-# Predicting Survived Passengers
+# Survived Passengers Classification
 ## Used Models
 <ol>
   <li>Naive Bayes</li>
