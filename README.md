@@ -21,3 +21,8 @@
 
 ## Dataset
 https://www.kaggle.com/competitions/titanic/data
+
+### created by a team of 3 students: 
+* Fares Ahmed Abdeltawab
+* Hassan Walid
+* Abdullah Ramadan
